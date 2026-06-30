@@ -13,6 +13,8 @@
         rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- PDF bills -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -80,6 +82,17 @@
             /* Custom Soot Sprite Cursor */
         }
 
+        @media (hover: none), (pointer: coarse) {
+            body {
+                cursor: auto;
+            }
+
+            #cursor-follower,
+            .soot-sprite {
+                display: none;
+            }
+        }
+
         /* Night Mode Overlay */
         body::before {
             content: '';
@@ -187,11 +200,9 @@
                 transform: translate(0, 0);
                 opacity: 0;
             }
-
             50% {
                 opacity: 1;
             }
-
             100% {
                 transform: translate(var(--fx), var(--fy));
                 opacity: 0;
@@ -206,7 +217,7 @@
             background: #2D2D2D;
             border-radius: 50%;
             pointer-events: none;
-            z-index: 9999;
+            z-index: 10080;
             transform: translate(-50%, -50%);
             transition: width 0.2s, height 0.2s;
             filter: blur(0.5px);
@@ -241,7 +252,7 @@
             background: #2D2D2D;
             border-radius: 50%;
             pointer-events: none;
-            z-index: 9998;
+            z-index: 10079;
             opacity: 0.8;
             animation: scurry 1s forwards;
             filter: blur(1px);
@@ -265,8 +276,6 @@
         .soot-sprite::after {
             right: 25%;
         }
-
-
 
         /* Konpeito (Star Candy) */
         .konpeito {
@@ -341,7 +350,6 @@
                 transform: scale(1);
                 opacity: 0.8;
             }
-
             100% {
                 transform: scale(0) translate(var(--mx), var(--my));
                 opacity: 0;
@@ -456,6 +464,351 @@
             transform: scale(1.035);
         }
 
+        .side-menu-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(28, 20, 16, 0.48);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 220ms ease;
+            z-index: 10011;
+        }
+
+        .side-menu-backdrop.is-open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: min(340px, calc(100vw - 28px));
+            height: 100vh;
+            background: #fff;
+            box-shadow: -18px 0 40px rgba(93, 64, 55, 0.22);
+            transform: translateX(105%);
+            transition: transform 260ms ease;
+            z-index: 10012;
+            overflow-y: auto;
+        }
+
+        .side-menu.is-open {
+            transform: translateX(0);
+        }
+
+        .side-menu-link {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            gap: 12px;
+            border-radius: 8px;
+            padding: 13px 14px;
+            text-align: left;
+            font-weight: 700;
+            color: #5D4037;
+            transition: background 180ms ease, color 180ms ease;
+        }
+
+        .side-menu-link:hover {
+            background: #FFFBEB;
+            color: #C64F4F;
+        }
+
+        #mobile-menu-toggle {
+            display: flex;
+            z-index: 10013;
+        }
+
+        #billing-menu-toggle {
+            display: none;
+        }
+
+        body.billing-open #header {
+            display: none;
+        }
+
+        body.billing-open #mobile-menu-toggle {
+            display: none;
+        }
+
+        body.billing-open .billing-page-header {
+            padding-right: 0;
+        }
+
+        body.billing-open #billing-menu-toggle {
+            display: flex;
+        }
+
+        body.billing-customer-mode .billing-owner-only {
+            display: none !important;
+        }
+
+        .billing-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .owner-auth-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 10030;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(28, 20, 16, 0.58);
+            padding: 18px;
+            backdrop-filter: blur(6px);
+            cursor: auto;
+        }
+
+        .owner-auth-modal.is-open {
+            display: flex;
+        }
+
+        .owner-auth-card {
+            width: min(420px, 100%);
+            border: 1px solid rgba(230, 168, 99, 0.45);
+            border-radius: 16px;
+            background: linear-gradient(145deg, #FFFBEB, #FFFFFF 62%, #FFF3D7);
+            box-shadow: 0 24px 70px rgba(28, 20, 16, 0.35);
+        }
+
+        .owner-auth-input {
+            width: 100%;
+            border: 1px solid rgba(139, 94, 60, 0.32);
+            border-radius: 9999px;
+            background: #fff;
+            padding: 13px 16px;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            color: #5D4037;
+            outline: none;
+            box-shadow: inset 0 2px 8px rgba(93, 64, 55, 0.08);
+        }
+
+        .owner-auth-input:focus {
+            border-color: #8B5E3C;
+            box-shadow: 0 0 0 4px rgba(230, 168, 99, 0.20), inset 0 2px 8px rgba(93, 64, 55, 0.08);
+        }
+
+        .owner-auth-error {
+            min-height: 20px;
+            color: #C64F4F;
+        }
+
+        .billing-dialog {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            z-index: 10003;
+            display: none;
+            background: #FDFCF6;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7z' fill='%23d4a373' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+            overflow-y: auto;
+            cursor: auto;
+        }
+
+        .billing-dialog * {
+            box-sizing: border-box;
+        }
+
+        #payment-modal,
+        #instagram-scanner-modal,
+        #payment-modal *,
+        #instagram-scanner-modal * {
+            cursor: auto;
+        }
+
+        .billing-dialog.is-open {
+            display: block;
+        }
+
+        .billing-dialog-shell {
+            width: min(1120px, 100%);
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        .billing-panel {
+            background:
+                linear-gradient(135deg, rgba(255, 251, 235, 0.98), rgba(255, 255, 255, 0.96)),
+                radial-gradient(circle at top left, rgba(230, 168, 99, 0.18), transparent 32%);
+        }
+
+        .billing-tab[aria-selected="true"] {
+            background: #5D4037;
+            color: #fff;
+            box-shadow: 0 8px 18px rgba(93, 64, 55, 0.18);
+        }
+
+        .qty-btn {
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            background: #FFFBEB;
+            color: #5D4037;
+            border: 1px solid rgba(139, 94, 60, 0.22);
+            font-weight: 700;
+        }
+
+        .billing-pagination-btn {
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            background: #fff;
+            color: #5D4037;
+            border: 1px solid rgba(139, 94, 60, 0.24);
+            box-shadow: 0 6px 14px rgba(93, 64, 55, 0.08);
+            transition: transform 160ms ease, background 160ms ease, color 160ms ease;
+        }
+
+        .billing-pagination-btn:hover:not(:disabled) {
+            background: #5D4037;
+            color: #fff;
+        }
+
+        .billing-pagination-btn:disabled {
+            opacity: 0.38;
+            cursor: not-allowed;
+        }
+
+        .payment-qr-box {
+            background:
+                linear-gradient(90deg, #121212 8px, transparent 8px 16px, #121212 16px 24px, transparent 24px 32px),
+                linear-gradient(#121212 8px, transparent 8px 16px, #121212 16px 24px, transparent 24px 32px),
+                #fff;
+            background-size: 32px 32px;
+            image-rendering: pixelated;
+        }
+
+        .payment-focus-card {
+            width: min(360px, calc(100vw - 28px));
+            background: #fff;
+            box-shadow: 0 24px 70px rgba(28, 20, 16, 0.35);
+        }
+
+        @media (max-width: 767px) {
+            header {
+                padding: 10px;
+            }
+
+            .site-header-shell {
+                box-sizing: border-box;
+                max-width: calc(100vw - 20px);
+                width: 100%;
+                border-radius: 18px;
+                padding: 12px;
+                align-items: flex-start;
+                position: relative;
+            }
+
+            #instagram-scanner-open {
+                display: none;
+            }
+
+            #mobile-menu-toggle {
+                position: fixed;
+                left: min(330px, calc(100vw - 58px));
+                right: auto;
+                top: 18px;
+            }
+
+            body.billing-open .billing-page-header {
+                padding-right: 96px;
+            }
+
+            body.billing-open #billing-dialog-close {
+                width: 40px;
+                padding: 0;
+                font-size: 0;
+            }
+
+            body.billing-open #billing-dialog-close i {
+                font-size: 0.9rem;
+            }
+
+            .brand-food-icon {
+                width: 38px;
+                height: 38px;
+                flex-basis: 38px;
+            }
+
+            .mobile-hero-title {
+                max-width: 330px;
+                margin-left: auto;
+                margin-right: auto;
+                font-size: 2.2rem;
+                line-height: 1.25;
+            }
+
+            .mobile-hero-title .hero-highlight {
+                margin: 6px 0;
+            }
+
+            .mobile-hero-copy {
+                max-width: 330px;
+                padding: 20px 16px;
+                font-size: 1rem;
+                overflow-wrap: break-word;
+            }
+
+            .mobile-hero-copy br {
+                display: none;
+            }
+
+            .billing-dialog-shell {
+                padding: 0;
+            }
+
+            .billing-panel {
+                min-height: 100vh;
+                border-radius: 0;
+                border: 0;
+                box-shadow: none;
+            }
+
+            .billing-mobile-summary {
+                position: static;
+                border-radius: 12px;
+            }
+
+            .billing-page-header {
+                position: relative;
+                align-items: flex-start;
+                gap: 12px;
+                min-height: 74px;
+                padding-right: 96px;
+            }
+
+            .billing-page-header h2 {
+                font-size: 2rem;
+                line-height: 1.12;
+                max-width: calc(100vw - 132px);
+            }
+
+            .billing-header-actions {
+                position: absolute;
+                right: 0;
+                top: 0;
+            }
+
+            .billing-tab {
+                padding-left: 10px;
+                padding-right: 10px;
+                font-size: 0.82rem;
+            }
+        }
+
         /* Windy Leaves */
         .leaf {
             position: fixed;
@@ -476,11 +829,9 @@
                 transform: translate(0, 0) rotate(0deg);
                 opacity: 0;
             }
-
             10% {
                 opacity: 0.8;
             }
-
             100% {
                 transform: translate(100vw, 100vh) rotate(720deg);
                 opacity: 0;
@@ -503,11 +854,9 @@
                 transform: translateY(0) translateX(0);
                 opacity: 0;
             }
-
             50% {
                 opacity: 0.6;
             }
-
             100% {
                 transform: translateY(-100px) translateX(50px);
                 opacity: 0;
@@ -520,20 +869,16 @@
         }
 
         @keyframes jelly {
-
             0%,
             100% {
                 transform: scale(1, 1);
             }
-
             25% {
                 transform: scale(0.9, 1.1);
             }
-
             50% {
                 transform: scale(1.1, 0.9);
             }
-
             75% {
                 transform: scale(0.95, 1.05);
             }
@@ -559,29 +904,77 @@
     <!-- Header -->
     <header class="fixed w-full z-40 top-0 left-0 p-4 transition duration-300" id="header">
         <div
-            class="max-w-6xl mx-auto flex justify-between items-center bg-white/90 backdrop-blur-sm rounded-full shadow-md py-3 px-8 paper-card">
-            <div class="flex items-center gap-3">
-                <span class="brand-food-icon animate-bounce-ghibli" aria-hidden="true">
-                    <img src="./materials/TFI-Logo.png" alt="">
-                </span>
-                <h1 class="font-serif font-bold text-xl text-ghibli-dark tracking-widest">TFI.Co</h1>
-            </div>
-            <nav class="hidden md:flex gap-6 font-sans text-sm font-bold text-ghibli-brown">
-                <a href="#about" class="hover:text-ghibli-red transition jelly-hover">Our Story</a>
-                <a href="#gallery" class="hover:text-ghibli-red transition jelly-hover">The Waffle & Fry Menu</a>
-                <a href="#contact" class="hover:text-ghibli-red transition jelly-hover">Director's Cut</a>
-                <a href="./materials/tfi_cinematic_premium_menu.pdf" download
-                    class="hover:text-ghibli-red transition jelly-hover">
-                    <i class="fas fa-download mr-1"></i> Menu
+            class="site-header-shell max-w-6xl mx-auto bg-white/90 backdrop-blur-sm rounded-full shadow-md py-3 px-8 paper-card">
+            <div class="flex w-full items-center justify-between gap-3">
+                <a href="#" class="flex min-w-0 items-center gap-3" aria-label="TFI.Co home">
+                    <span class="brand-food-icon animate-bounce-ghibli" aria-hidden="true">
+                        <img src="./materials/TFI-Logo.png" alt="">
+                    </span>
+                    <h1 class="font-serif font-bold text-xl text-ghibli-dark tracking-widest">TFI.Co</h1>
                 </a>
-            </nav>
-            <button type="button" id="instagram-scanner-open"
-                class="bg-ghibli-brown text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-ghibli-red transition jelly-hover shadow-lg"
-                aria-label="Show Instagram scanner">
-                <i class="fab fa-instagram"></i>
-            </button>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="instagram-scanner-open"
+                        class="bg-ghibli-brown text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-ghibli-red transition jelly-hover shadow-lg"
+                        aria-label="Show Instagram scanner">
+                        <i class="fab fa-instagram"></i>
+                    </button>
+                    <button type="button" id="mobile-menu-toggle"
+                        class="bg-ghibli-green text-white w-10 h-10 rounded-full items-center justify-center hover:bg-ghibli-red transition jelly-hover shadow-lg"
+                        aria-label="Open menu" aria-expanded="false" aria-controls="side-menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
         </div>
     </header>
+
+    <!-- Right Side Menu -->
+    <div id="side-menu-backdrop" class="side-menu-backdrop"></div>
+    <aside id="side-menu" class="side-menu" aria-hidden="true">
+        <div class="flex items-center justify-between border-b border-[#E6A863]/30 p-5">
+            <div class="flex items-center gap-3">
+                <span class="brand-food-icon" aria-hidden="true">
+                    <img src="./materials/TFI-Logo.png" alt="">
+                </span>
+                <div>
+                    <p class="font-serif text-xl font-bold text-ghibli-dark tracking-widest">TFI.Co</p>
+                    <p class="text-xs font-bold uppercase tracking-widest text-ghibli-green">Menu</p>
+                </div>
+            </div>
+            <button type="button" id="side-menu-close"
+                class="flex h-10 w-10 items-center justify-center rounded-full bg-ghibli-brown text-white transition hover:bg-ghibli-red"
+                aria-label="Close menu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <nav class="grid gap-2 p-5 font-sans text-sm">
+            <a href="#about" class="side-menu-link">
+                <i class="fas fa-store w-5 text-center"></i>
+                Our Story
+            </a>
+            <a href="#gallery" class="side-menu-link">
+                <i class="fas fa-utensils w-5 text-center"></i>
+                The Waffle & Fry Menu
+            </a>
+            <button type="button" class="side-menu-link" data-open-billing>
+                <i class="fas fa-receipt w-5 text-center"></i>
+                Billing Order
+            </button>
+            <a href="#contact" class="side-menu-link">
+                <i class="fas fa-phone w-5 text-center"></i>
+                Director's Cut
+            </a>
+            <button type="button" id="mobile-instagram-scanner-open" class="side-menu-link">
+                <i class="fab fa-instagram w-5 text-center"></i>
+                Instagram QR
+            </button>
+            <a href="./materials/tfi_cinematic_premium_menu.pdf" download class="side-menu-link">
+                <i class="fas fa-download w-5 text-center"></i>
+                Download Menu
+            </a>
+        </nav>
+    </aside>
 
     <!-- Hero Section -->
     <section class="min-h-screen pt-24 pb-6 flex flex-col items-center justify-center relative overflow-hidden">
@@ -598,23 +991,19 @@
                 <div class="absolute -top-10 -right-10 text-ghibli-bread animate-float">
                     <i class="fas fa-star text-2xl"></i>
                 </div>
-                <h2 class="font-serif text-4xl md:text-6xl text-ghibli-dark leading-relaxed">
+                <h2 class="mobile-hero-title font-serif text-4xl md:text-6xl text-ghibli-dark leading-relaxed">
                     Golden crunch,<br>
                     <span
-                        class="inline-block transform -rotate-2 bg-ghibli-green text-white px-4 py-1 mx-2 rounded-sm shadow-md">perfect</span>movie
+                        class="hero-highlight inline-block transform -rotate-2 bg-ghibli-green text-white px-4 py-1 mx-2 rounded-sm shadow-md">perfect</span><br class="md:hidden">movie
                     scenes.
                 </h2>
             </div>
 
             <p
-                class="font-sans text-lg text-ghibli-brown mt-4 mb-6 max-w-2xl mx-auto leading-loose bg-white/60 p-6 rounded-xl shadow-sm backdrop-blur-sm">
-
+                class="mobile-hero-copy font-sans text-lg text-ghibli-brown mt-4 mb-6 max-w-2xl mx-auto leading-loose bg-white/60 p-6 rounded-xl shadow-sm backdrop-blur-sm">
                 Waffles and fries that feel like a warm movie night.<br>
-
                 Crispy, golden, and crafted deep inside the flavor forest.<br>
-
                 With a touch of cinematic magic beyond the steam.
-
             </p>
 
             <div class="mb-12 flex flex-col sm:flex-row justify-center gap-3">
@@ -784,6 +1173,156 @@
         </div>
     </section>
 
+    <!-- Owner Billing Verification -->
+    <div id="owner-auth-modal" class="owner-auth-modal" role="dialog" aria-modal="true"
+        aria-labelledby="owner-auth-title">
+        <div class="owner-auth-card p-6 font-sans text-ghibli-dark">
+            <div class="mb-5 flex items-start justify-between gap-4">
+                <div>
+                    <p class="mb-2 text-xs font-bold uppercase tracking-widest text-ghibli-green">Owner counter pass</p>
+                    <h2 id="owner-auth-title" class="font-serif text-3xl text-ghibli-dark">A tiny gate before the till</h2>
+                </div>
+                <button type="button" id="owner-auth-close"
+                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ghibli-brown text-white transition hover:bg-ghibli-red"
+                    aria-label="Close verification">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p class="mb-4 text-sm leading-relaxed text-ghibli-brown">
+                Billing is for the hands that know the counter, the orders, and the secret rhythm of TFI.Co.
+            </p>
+            <p class="mb-5 rounded-lg border border-[#E6A863]/35 bg-white/75 px-4 py-3 text-xs font-bold uppercase tracking-widest text-ghibli-green">
+                Note: only owners can authenticate billing access.
+            </p>
+            <button type="button" id="customer-price-open"
+                class="mb-5 flex w-full items-center justify-center gap-2 rounded-full bg-ghibli-green px-5 py-3 font-bold text-white transition hover:bg-ghibli-dark">
+                <i class="fas fa-receipt"></i>
+                Customer Price Check
+            </button>
+            <p class="mb-5 text-center text-xs font-bold uppercase tracking-widest text-ghibli-brown">
+                Customers can check item costs only. Owners can unlock billing below.
+            </p>
+            <form id="owner-auth-form" class="space-y-4">
+                <label for="owner-auth-code" class="block text-xs font-bold uppercase tracking-widest text-ghibli-brown">
+                    Verification code
+                </label>
+                <input id="owner-auth-code" class="owner-auth-input" type="password" inputmode="numeric"
+                    autocomplete="off" maxlength="4" placeholder="----">
+                <p id="owner-auth-error" class="owner-auth-error text-center text-sm font-bold"></p>
+                <button type="submit"
+                    class="flex w-full items-center justify-center gap-2 rounded-full bg-ghibli-brown px-5 py-3 font-bold text-white transition hover:bg-ghibli-red">
+                    <i class="fas fa-lock-open"></i>
+                    Unlock Billing
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Billing Order Page -->
+    <div id="billing-dialog" class="billing-dialog" role="dialog" aria-modal="true" aria-labelledby="billing-title">
+        <div class="billing-dialog-shell">
+            <div class="billing-panel rounded-lg border border-[#E6A863]/40 p-4 shadow-2xl md:p-6">
+                <div class="billing-page-header mb-5 flex items-start justify-between gap-4">
+                    <div>
+                        <span id="billing-kicker" class="block text-ghibli-green font-bold tracking-widest text-sm mb-2">BILLING ORDER</span>
+                        <h2 id="billing-title" class="font-serif text-3xl md:text-4xl text-ghibli-dark">Quick Mobile Billing</h2>
+                    </div>
+                    <div class="billing-header-actions">
+                        <button type="button" id="billing-dialog-close"
+                            class="flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-ghibli-brown px-4 text-sm font-bold text-white transition hover:bg-ghibli-red"
+                            aria-label="Go back">
+                            <i class="fas fa-arrow-left"></i>
+                            Back
+                        </button>
+                        <button type="button" id="billing-menu-toggle"
+                            class="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ghibli-green text-white transition hover:bg-ghibli-red jelly-hover shadow-lg"
+                            aria-label="Open menu" aria-expanded="false" aria-controls="side-menu">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="grid gap-4 md:grid-cols-[1fr_300px]">
+                    <div>
+                        <div class="billing-owner-only mb-4 grid gap-3 sm:grid-cols-2">
+                            <label class="block">
+                                <span class="mb-1 block text-xs font-bold uppercase tracking-widest text-ghibli-brown">Order ID</span>
+                                <input id="billing-order-id" type="text"
+                                    class="w-full rounded-lg border border-[#E6A863]/50 bg-white px-4 py-3 font-bold text-ghibli-dark shadow-inner">
+                            </label>
+                            <label class="block">
+                                <span class="mb-1 block text-xs font-bold uppercase tracking-widest text-ghibli-brown">Customer Name</span>
+                                <input id="billing-customer-name" type="text" placeholder="Customer name"
+                                    class="w-full rounded-lg border border-[#E6A863]/50 bg-white px-4 py-3 text-ghibli-dark shadow-inner">
+                            </label>
+                        </div>
+
+                        <label class="mb-4 block">
+                            <span class="mb-1 block text-xs font-bold uppercase tracking-widest text-ghibli-brown">Search Items</span>
+                            <div class="relative">
+                                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-ghibli-brown/60"></i>
+                                <input id="billing-search" type="search" placeholder="Search waffles or fries"
+                                    class="w-full rounded-full border border-[#E6A863]/50 bg-white py-3 pl-11 pr-4 text-ghibli-dark shadow-inner">
+                            </div>
+                        </label>
+
+                        <div class="mb-4 flex rounded-full bg-white p-1 shadow-inner" role="tablist" aria-label="Billing menu categories">
+                            <button type="button" class="billing-tab flex-1 rounded-full px-4 py-3 text-sm font-bold text-ghibli-brown transition"
+                                data-billing-tab="waffles" aria-selected="true">Waffles</button>
+                            <button type="button" class="billing-tab flex-1 rounded-full px-4 py-3 text-sm font-bold text-ghibli-brown transition"
+                                data-billing-tab="fries" aria-selected="false">French Fries</button>
+                        </div>
+
+                        <div id="billing-items" class="grid gap-3"></div>
+                        <div id="billing-pagination" class="mt-4 flex items-center justify-between gap-3 rounded-full bg-white/80 px-3 py-2 shadow-inner"></div>
+                    </div>
+
+                    <aside class="billing-mobile-summary rounded-lg bg-white p-4 shadow-lg">
+                        <div class="mb-4 flex items-center gap-3 border-b border-[#E6A863]/30 pb-4">
+                            <img src="./materials/TFI-Logo.png" alt="TFI.Co logo" class="h-14 w-14 rounded-full border border-[#E6A863] object-cover">
+                            <div>
+                                <p class="font-serif text-xl font-bold text-ghibli-dark">TFI.Co</p>
+                                <p id="billing-summary-title" class="text-xs font-bold uppercase tracking-widest text-ghibli-green">Order Summary</p>
+                            </div>
+                        </div>
+
+                        <div id="billing-summary" class="mb-4 space-y-2 text-sm text-ghibli-dark">
+                            <p class="text-ghibli-brown">Select quantity to prepare the bill.</p>
+                        </div>
+
+                        <div class="space-y-2 border-t border-[#E6A863]/30 pt-4 text-sm">
+                            <div class="flex justify-between">
+                                <span>Items</span>
+                                <strong id="billing-count">0</strong>
+                            </div>
+                            <div class="flex justify-between text-lg text-ghibli-dark">
+                                <span>Total</span>
+                                <strong id="billing-total">₹0</strong>
+                            </div>
+                        </div>
+
+                        <button type="button" id="billing-submit"
+                            class="billing-owner-only mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-ghibli-brown px-5 py-3 font-bold text-white shadow-lg transition hover:bg-ghibli-red disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled>
+                            <i class="fas fa-file-invoice"></i>
+                            Submit & Download Invoice
+                        </button>
+
+                        <button type="button" id="billing-show-qr"
+                            class="billing-owner-only mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-ghibli-green px-5 py-3 font-bold text-white shadow-lg transition hover:bg-ghibli-dark disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled>
+                            <i class="fas fa-qrcode"></i>
+                            Show QR
+                        </button>
+
+                        <p id="billing-action-note" class="billing-owner-only mt-3 text-center text-xs font-bold uppercase tracking-widest text-ghibli-green">
+                            QR is optional for payment display
+                        </p>
+                    </aside>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="bg-ghibli-brown text-[#E6D5B8] py-12" id="contact">
         <div class="max-w-5xl mx-auto px-6">
@@ -854,6 +1393,43 @@
                 <i class="fab fa-instagram"></i>
                 Open Instagram
             </a>
+        </div>
+    </div>
+
+    <!-- Payment Popup -->
+    <div id="payment-modal"
+        class="fixed inset-0 z-[10020] hidden items-center justify-center bg-black/75 px-4 py-8 backdrop-blur-sm">
+        <div class="payment-focus-card relative w-full max-w-sm rounded-2xl p-5 text-center">
+            <button type="button" id="payment-close"
+                class="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-ghibli-brown text-white transition hover:bg-ghibli-red"
+                aria-label="Close payment QR">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <img src="./materials/TFI-Logo.png" class="mx-auto mb-3 h-16 w-16 rounded-full border border-[#E6A863] object-cover"
+                alt="TFI.Co logo">
+            <p class="font-serif text-2xl font-bold text-ghibli-dark">Scan To Pay</p>
+            <p id="payment-order-label" class="mb-4 text-sm font-bold text-ghibli-brown"></p>
+
+            <div class="mx-auto mb-4 flex h-60 w-60 items-center justify-center overflow-hidden rounded-lg border-8 border-white shadow-inner payment-qr-box">
+                <img src="./materials/payment-qr.jpeg" alt="Payment QR code"
+                    class="hidden h-full w-full object-cover"
+                    onload="this.classList.remove('hidden'); this.nextElementSibling.classList.add('hidden');"
+                    onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                <div class="rounded bg-white/95 px-4 py-3 text-center shadow">
+                    <p class="text-xs font-bold uppercase tracking-widest text-ghibli-brown">Payment Amount</p>
+                    <p id="payment-total-label" class="text-xl font-bold text-ghibli-dark">₹0</p>
+                </div>
+            </div>
+
+            <p class="mb-4 text-xs leading-relaxed text-ghibli-brown">
+                After the customer shows the paid screen, tap confirm to download the bill PDF.
+            </p>
+            <button type="button" id="payment-confirm"
+                class="flex w-full items-center justify-center gap-2 rounded-full bg-ghibli-brown px-6 py-3 font-bold text-white shadow-lg transition hover:bg-ghibli-red">
+                <i class="fas fa-check"></i>
+                Done
+            </button>
         </div>
     </div>
 
@@ -944,30 +1520,12 @@
 
         // Time Manager
         function checkTime() {
-            const hour = new Date().getHours();
             const root = document.querySelector(':root');
-
-            // Day: 6-16, Sunset: 16-19, Night: 19-6
-            if (hour >= 6 && hour < 16) {
-                // Day
-                root.style.setProperty('--bg-color', '#FDFCF6');
-                root.style.setProperty('--overlay-color', 'rgba(0,0,0,0)');
-                root.style.setProperty('--lantern-opacity', '0');
-                setInterval(spawnDust, 500); // Dust only in day
-            } else if (hour >= 16 && hour < 19) {
-                // Sunset
-                root.style.setProperty('--bg-color', '#FFF3E0');
-                root.style.setProperty('--overlay-color', 'rgba(255, 100, 0, 0.1)');
-                root.style.setProperty('--lantern-opacity', '0.2');
-                setInterval(spawnDust, 800);
-            } else {
-                // Night
-                root.style.setProperty('--bg-color', '#1a1c29'); // Dark Ghibli Night Blue
-                root.style.setProperty('--text-color', '#E6D5B8');
-                root.style.setProperty('--overlay-color', 'rgba(0, 10, 30, 0.4)');
-                root.style.setProperty('--lantern-opacity', '1');
-                setInterval(spawnFirefly, 1000); // Fireflies at night
-            }
+            root.style.setProperty('--bg-color', '#FDFCF6');
+            root.style.setProperty('--text-color', '#5D4037');
+            root.style.setProperty('--overlay-color', 'rgba(0,0,0,0)');
+            root.style.setProperty('--lantern-opacity', '0');
+            setInterval(spawnDust, 800);
         }
 
         checkTime();
@@ -985,8 +1543,6 @@
         setInterval(spawnLeaf, 3000);
 
         function spawnDust() {
-            const h = new Date().getHours();
-            if (h >= 19 || h < 6) return; // Not at night
             const dust = document.createElement('div');
             dust.classList.add('dust-mote');
             const size = Math.random() * 4 + 1 + 'px';
@@ -1135,6 +1691,7 @@
         }
 
         const instagramScannerOpen = document.getElementById('instagram-scanner-open');
+        const mobileInstagramScannerOpen = document.getElementById('mobile-instagram-scanner-open');
         const instagramScannerClose = document.getElementById('instagram-scanner-close');
         const instagramScannerModal = document.getElementById('instagram-scanner-modal');
 
@@ -1149,6 +1706,10 @@
         }
 
         instagramScannerOpen?.addEventListener('click', openInstagramScanner);
+        mobileInstagramScannerOpen?.addEventListener('click', () => {
+            closeSideMenu?.();
+            openInstagramScanner();
+        });
         instagramScannerClose?.addEventListener('click', closeInstagramScanner);
         instagramScannerModal?.addEventListener('click', (event) => {
             if (event.target === instagramScannerModal) closeInstagramScanner();
@@ -1156,6 +1717,609 @@
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') closeInstagramScanner();
         });
+    </script>
+
+    <!-- Mobile Menu and Billing -->
+    <script>
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const billingMenuToggle = document.getElementById('billing-menu-toggle');
+        const sideMenu = document.getElementById('side-menu');
+        const sideMenuBackdrop = document.getElementById('side-menu-backdrop');
+        const sideMenuClose = document.getElementById('side-menu-close');
+        const billingDialog = document.getElementById('billing-dialog');
+        const billingDialogClose = document.getElementById('billing-dialog-close');
+        const ownerAuthModal = document.getElementById('owner-auth-modal');
+        const ownerAuthClose = document.getElementById('owner-auth-close');
+        const ownerAuthForm = document.getElementById('owner-auth-form');
+        const ownerAuthCode = document.getElementById('owner-auth-code');
+        const ownerAuthError = document.getElementById('owner-auth-error');
+        const customerPriceOpen = document.getElementById('customer-price-open');
+        const ownerBillingCode = '2305';
+        let billingAccessGranted = false;
+        let billingMode = 'owner';
+
+        function setMenuButtonState(isOpen) {
+            [mobileMenuToggle, billingMenuToggle].forEach((button) => {
+                button?.setAttribute('aria-expanded', String(isOpen));
+                button?.querySelector('i')?.classList.toggle('fa-times', isOpen);
+                button?.querySelector('i')?.classList.toggle('fa-bars', !isOpen);
+            });
+        }
+
+        function openSideMenu() {
+            sideMenu?.classList.add('is-open');
+            sideMenuBackdrop?.classList.add('is-open');
+            sideMenu?.setAttribute('aria-hidden', 'false');
+            setMenuButtonState(true);
+        }
+
+        function closeSideMenu() {
+            sideMenu?.classList.remove('is-open');
+            sideMenuBackdrop?.classList.remove('is-open');
+            sideMenu?.setAttribute('aria-hidden', 'true');
+            setMenuButtonState(false);
+        }
+
+        function openBillingDialog(mode = 'owner') {
+            if (mode === 'owner' && !billingAccessGranted) {
+                openOwnerAuthModal();
+                return;
+            }
+            billingMode = mode;
+            closeSideMenu();
+            closeOwnerAuthModal();
+            billingDialog?.classList.add('is-open');
+            document.body.classList.add('billing-open');
+            document.body.classList.toggle('billing-customer-mode', billingMode === 'customer');
+            document.body.style.overflow = 'hidden';
+            renderBilling();
+            setTimeout(() => document.getElementById('billing-search')?.focus(), 80);
+        }
+
+        function closeBillingDialog() {
+            billingDialog?.classList.remove('is-open');
+            document.body.classList.remove('billing-open');
+            document.body.classList.remove('billing-customer-mode');
+            document.body.style.overflow = '';
+            billingAccessGranted = false;
+            billingMode = 'owner';
+        }
+
+        function openOwnerAuthModal() {
+            closeSideMenu();
+            billingAccessGranted = false;
+            ownerAuthModal?.classList.add('is-open');
+            document.body.style.overflow = 'hidden';
+            if (ownerAuthCode) ownerAuthCode.value = '';
+            if (ownerAuthError) ownerAuthError.textContent = '';
+            setTimeout(() => ownerAuthCode?.focus(), 80);
+        }
+
+        function closeOwnerAuthModal() {
+            ownerAuthModal?.classList.remove('is-open');
+            if (!billingDialog?.classList.contains('is-open')) {
+                document.body.style.overflow = '';
+            }
+        }
+
+        function toggleSideMenu() {
+            if (sideMenu?.classList.contains('is-open')) {
+                closeSideMenu();
+            } else {
+                openSideMenu();
+            }
+        }
+
+        mobileMenuToggle?.addEventListener('click', toggleSideMenu);
+        billingMenuToggle?.addEventListener('click', toggleSideMenu);
+
+        sideMenu?.querySelectorAll('a').forEach((link) => {
+            link.addEventListener('click', () => {
+                closeSideMenu();
+            });
+        });
+        sideMenuClose?.addEventListener('click', closeSideMenu);
+        sideMenuBackdrop?.addEventListener('click', closeSideMenu);
+        document.querySelectorAll('[data-open-billing]').forEach((button) => {
+            button.addEventListener('click', openOwnerAuthModal);
+        });
+        ownerAuthClose?.addEventListener('click', closeOwnerAuthModal);
+        ownerAuthModal?.addEventListener('click', (event) => {
+            if (event.target === ownerAuthModal) closeOwnerAuthModal();
+        });
+        ownerAuthForm?.addEventListener('submit', (event) => {
+            event.preventDefault();
+            if (ownerAuthCode?.value.trim() === ownerBillingCode) {
+                billingAccessGranted = true;
+                closeOwnerAuthModal();
+                openBillingDialog('owner');
+                return;
+            }
+            if (ownerAuthError) ownerAuthError.textContent = 'That code does not open the counter.';
+            ownerAuthCode?.select();
+        });
+        customerPriceOpen?.addEventListener('click', () => {
+            billingAccessGranted = false;
+            openBillingDialog('customer');
+        });
+        billingDialogClose?.addEventListener('click', closeBillingDialog);
+        document.addEventListener('keydown', (event) => {
+            if (event.key !== 'Escape') return;
+            closeSideMenu();
+            closeOwnerAuthModal();
+            closeBillingDialog();
+        });
+
+        const billingMenu = {
+            waffles: [
+                { name: 'Pokiri Praline Waffle', price: 189 },
+                { name: 'Gabbar Singh Gongura-Choco Twist', price: 199 },
+                { name: 'Baahubali Mega Waffle', price: 279 },
+                { name: 'Arjun Reddy Intense Velvet', price: 219 },
+                { name: 'Kushi Caramel Classic', price: 169 },
+                { name: 'Indra Nutella Imperial', price: 239 },
+                { name: 'Athadu Almond Butter Waffle', price: 209 },
+                { name: 'Jalsa Belgian Crunch Waffle', price: 229 },
+                { name: 'Magadheera Dark Choco Waffle', price: 249 },
+                { name: 'Orange Honey Cream Waffle', price: 199 }
+            ],
+            fries: [
+                { name: 'Pushpa Peri-Peri Fries', price: 149 },
+                { name: 'RRR Loaded Fries', price: 249 },
+                { name: 'Murari Cheese Dynamite', price: 179 },
+                { name: 'DJ Duvvada Jagannadham Masala Fries', price: 139 },
+                { name: 'Mirchi Chilli Garlic Volcano', price: 169 },
+                { name: 'Arya Tangy Mayo Fries', price: 159 },
+                { name: 'Businessman BBQ Fries', price: 189 },
+                { name: 'Bommarillu Classic Salted Fries', price: 129 },
+                { name: 'Simhadri Schezwan Fries', price: 179 },
+                { name: 'Geetha Govindam Cheese Fries', price: 199 }
+            ]
+        };
+
+        const orderIdInput = document.getElementById('billing-order-id');
+        const customerNameInput = document.getElementById('billing-customer-name');
+        const billingSearch = document.getElementById('billing-search');
+        const billingItems = document.getElementById('billing-items');
+        const billingPagination = document.getElementById('billing-pagination');
+        const billingSummary = document.getElementById('billing-summary');
+        const billingCount = document.getElementById('billing-count');
+        const billingTotal = document.getElementById('billing-total');
+        const billingSubmit = document.getElementById('billing-submit');
+        const billingShowQr = document.getElementById('billing-show-qr');
+        const billingKicker = document.getElementById('billing-kicker');
+        const billingTitle = document.getElementById('billing-title');
+        const billingSummaryTitle = document.getElementById('billing-summary-title');
+        const billingActionNote = document.getElementById('billing-action-note');
+        const paymentModal = document.getElementById('payment-modal');
+        const paymentClose = document.getElementById('payment-close');
+        const paymentConfirm = document.getElementById('payment-confirm');
+        const paymentOrderLabel = document.getElementById('payment-order-label');
+        const paymentTotalLabel = document.getElementById('payment-total-label');
+
+        let activeBillingTab = 'waffles';
+        let billingPage = 1;
+        const billingItemsPerPage = 5;
+        let activeOrder = null;
+        let returnToBillingAfterPaymentClose = false;
+        let invoiceAlreadyDownloaded = false;
+        const quantities = {};
+
+        function getLastOrderNumber() {
+            return Number(localStorage.getItem('tfiLastOrderNumber') || '0');
+        }
+
+        function formatOrderId(number) {
+            return `TFI-${String(number).padStart(4, '0')}`;
+        }
+
+        function getNextOrderId() {
+            return formatOrderId(getLastOrderNumber() + 1);
+        }
+
+        function hydrateBillingFromStorage() {
+            if (billingMode === 'customer') return;
+            const storedCustomerName = localStorage.getItem('tfiCustomerName') || '';
+            if (customerNameInput && !customerNameInput.value) {
+                customerNameInput.value = storedCustomerName;
+            }
+            if (orderIdInput && !orderIdInput.value) {
+                orderIdInput.value = getNextOrderId();
+            }
+        }
+
+        function getSelectedItems() {
+            return Object.entries(quantities)
+                .filter(([, qty]) => qty > 0)
+                .map(([name, qty]) => {
+                    const item = [...billingMenu.waffles, ...billingMenu.fries].find((entry) => entry.name === name);
+                    return { ...item, qty, amount: item.price * qty };
+                });
+        }
+
+        function renderBillingPagination(totalItems, totalPages) {
+            if (!billingPagination) return;
+            if (totalItems <= billingItemsPerPage) {
+                billingPagination.innerHTML = `
+                    <span class="px-2 text-xs font-bold uppercase tracking-widest text-ghibli-brown">Showing ${totalItems} item${totalItems === 1 ? '' : 's'}</span>
+                    <span class="px-2 text-xs font-bold uppercase tracking-widest text-ghibli-green">5 per page</span>
+                `;
+                return;
+            }
+
+            billingPagination.innerHTML = `
+                <button type="button" class="billing-pagination-btn" data-billing-page="prev" ${billingPage === 1 ? 'disabled' : ''} aria-label="Previous billing page">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="text-xs font-bold uppercase tracking-widest text-ghibli-brown">Page ${billingPage} of ${totalPages}</span>
+                <button type="button" class="billing-pagination-btn" data-billing-page="next" ${billingPage === totalPages ? 'disabled' : ''} aria-label="Next billing page">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            `;
+        }
+
+        function renderBillingItems() {
+            const query = (billingSearch?.value || '').trim().toLowerCase();
+            const visibleItems = billingMenu[activeBillingTab].filter((item) => {
+                return item.name.toLowerCase().includes(query);
+            });
+            const totalPages = Math.max(1, Math.ceil(visibleItems.length / billingItemsPerPage));
+            billingPage = Math.min(Math.max(billingPage, 1), totalPages);
+            const pageStart = (billingPage - 1) * billingItemsPerPage;
+            const pagedItems = visibleItems.slice(pageStart, pageStart + billingItemsPerPage);
+
+            if (!visibleItems.length) {
+                billingItems.innerHTML = `
+                    <div class="rounded-lg bg-white p-5 text-center text-sm font-bold text-ghibli-brown shadow-sm">
+                        No items found. Try a different search.
+                    </div>
+                `;
+                renderBillingPagination(0, 1);
+                return;
+            }
+
+            billingItems.innerHTML = pagedItems.map((item) => {
+                const qty = quantities[item.name] || 0;
+                return `
+                    <div class="flex items-center justify-between gap-3 rounded-lg bg-white p-3 shadow-sm">
+                        <div class="min-w-0">
+                            <p class="font-bold text-ghibli-dark">${item.name}</p>
+                            <p class="text-sm font-bold text-ghibli-green">₹${item.price}</p>
+                        </div>
+                        <div class="flex shrink-0 items-center gap-2">
+                            <button type="button" class="qty-btn" data-qty-name="${item.name}" data-qty-change="-1" aria-label="Decrease ${item.name}">-</button>
+                            <span class="w-7 text-center font-bold text-ghibli-dark">${qty}</span>
+                            <button type="button" class="qty-btn" data-qty-name="${item.name}" data-qty-change="1" aria-label="Increase ${item.name}">+</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            renderBillingPagination(visibleItems.length, totalPages);
+        }
+
+        function renderBillingSummary() {
+            const selected = getSelectedItems();
+            const total = selected.reduce((sum, item) => sum + item.amount, 0);
+            const count = selected.reduce((sum, item) => sum + item.qty, 0);
+
+            billingSummary.innerHTML = selected.length
+                ? selected.map((item) => `
+                    <div class="flex justify-between gap-3">
+                        <span>${item.qty} x ${item.name}</span>
+                        <strong>₹${item.amount}</strong>
+                    </div>
+                `).join('')
+                : `<p class="text-ghibli-brown">${billingMode === 'customer' ? 'Select items to estimate your total.' : 'Select quantity to prepare the bill.'}</p>`;
+
+            billingCount.textContent = count;
+            billingTotal.textContent = `₹${total}`;
+            billingSubmit.disabled = selected.length === 0;
+            billingShowQr.disabled = selected.length === 0;
+        }
+
+        function renderBillingMode() {
+            const isCustomer = billingMode === 'customer';
+            if (billingKicker) billingKicker.textContent = isCustomer ? 'CUSTOMER PRICE CHECK' : 'BILLING ORDER';
+            if (billingTitle) billingTitle.textContent = isCustomer ? 'Check Your Snack Total' : 'Quick Mobile Billing';
+            if (billingSummaryTitle) billingSummaryTitle.textContent = isCustomer ? 'Price Summary' : 'Order Summary';
+            if (billingActionNote) {
+                billingActionNote.textContent = isCustomer
+                    ? 'This is only a price estimate.'
+                    : 'QR is optional for payment display';
+            }
+        }
+
+        function renderBilling() {
+            renderBillingMode();
+            hydrateBillingFromStorage();
+            renderBillingItems();
+            renderBillingSummary();
+        }
+
+        document.querySelectorAll('.billing-tab').forEach((button) => {
+            button.addEventListener('click', () => {
+                activeBillingTab = button.dataset.billingTab;
+                billingPage = 1;
+                document.querySelectorAll('.billing-tab').forEach((tab) => {
+                    tab.setAttribute('aria-selected', String(tab === button));
+                });
+                if (billingSearch) billingSearch.value = '';
+                renderBillingItems();
+            });
+        });
+
+        billingSearch?.addEventListener('input', () => {
+            billingPage = 1;
+            renderBillingItems();
+        });
+
+        billingItems?.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-qty-name]');
+            if (!button) return;
+            const name = button.dataset.qtyName;
+            const change = Number(button.dataset.qtyChange);
+            quantities[name] = Math.max(0, (quantities[name] || 0) + change);
+            renderBilling();
+        });
+
+        billingPagination?.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-billing-page]');
+            if (!button || button.disabled) return;
+            billingPage += button.dataset.billingPage === 'next' ? 1 : -1;
+            renderBillingItems();
+        });
+
+        function parseOrderNumber(orderId) {
+            const match = String(orderId || '').match(/(\d+)(?!.*\d)/);
+            return match ? Number(match[1]) : getLastOrderNumber() + 1;
+        }
+
+        function buildActiveOrder() {
+            const selected = getSelectedItems();
+            if (!selected.length) return null;
+            const orderId = orderIdInput.value.trim() || getNextOrderId();
+            const total = selected.reduce((sum, item) => sum + item.amount, 0);
+            return {
+                id: orderId,
+                number: parseOrderNumber(orderId),
+                customerName: customerNameInput.value.trim() || 'Walk-in Customer',
+                items: selected,
+                total,
+                createdAt: new Date().toISOString()
+            };
+        }
+
+        function persistOrderInputs(order) {
+            localStorage.setItem('tfiCustomerName', order.customerName);
+            localStorage.setItem('tfiLastOrderNumber', String(order.number));
+        }
+
+        function openPaymentModal() {
+            activeOrder = activeOrder || buildActiveOrder();
+            if (!activeOrder) return;
+            persistOrderInputs(activeOrder);
+            paymentOrderLabel.textContent = `${activeOrder.id} - ${activeOrder.customerName}`;
+            paymentTotalLabel.textContent = `₹${activeOrder.total}`;
+            closeBillingDialog();
+            returnToBillingAfterPaymentClose = true;
+            paymentModal.classList.remove('hidden');
+            paymentModal.classList.add('flex');
+        }
+
+        function closePaymentModal(shouldReturnToBilling = true) {
+            paymentModal.classList.add('hidden');
+            paymentModal.classList.remove('flex');
+            if (shouldReturnToBilling && returnToBillingAfterPaymentClose) {
+                openBillingDialog();
+            }
+            returnToBillingAfterPaymentClose = false;
+        }
+
+        function saveCompletedOrder(order) {
+            const history = JSON.parse(localStorage.getItem('tfiOrderHistory') || '[]');
+            history.push(order);
+            localStorage.setItem('tfiOrderHistory', JSON.stringify(history));
+            persistOrderInputs(order);
+        }
+
+        function resetBilling() {
+            Object.keys(quantities).forEach((key) => delete quantities[key]);
+            activeOrder = null;
+            invoiceAlreadyDownloaded = false;
+            if (orderIdInput) orderIdInput.value = getNextOrderId();
+            renderBilling();
+        }
+
+        function refreshNextOrderId() {
+            if (orderIdInput) orderIdInput.value = getNextOrderId();
+        }
+
+        function getInvoiceLogoImage() {
+            return new Promise((resolve) => {
+                const image = new Image();
+                image.onload = () => resolve(image);
+                image.onerror = () => resolve(null);
+                image.src = './materials/tfi-invoice-logo.jpg';
+            });
+        }
+
+        function drawInvoiceLogoFallback(doc, x = 296, y = 92, size = 44) {
+            doc.setFillColor(255, 248, 244);
+            doc.circle(x, y, size / 2, 'F');
+            doc.setDrawColor(221, 62, 20);
+            doc.setLineWidth(1.4);
+            doc.circle(x, y, size / 2);
+            doc.setDrawColor(56, 42, 38);
+            doc.setLineWidth(0.8);
+            doc.circle(x, y, size / 2 - 7);
+            doc.setTextColor(56, 42, 38);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(Math.max(14, size * 0.30));
+            doc.text('TFI', x, y - 3, { align: 'center' });
+            doc.setFontSize(Math.max(7, size * 0.12));
+            doc.text('Co', x, y + 11, { align: 'center' });
+        }
+
+        async function downloadBillPdf(order) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+            const logoImage = await getInvoiceLogoImage();
+            const invoiceDate = new Date(order.createdAt).toLocaleString();
+
+            doc.setFillColor(245, 245, 245);
+            doc.rect(0, 0, 595, 842, 'F');
+            doc.setFillColor(255, 255, 255);
+            doc.roundedRect(42, 36, 511, 770, 8, 8, 'F');
+            doc.setDrawColor(224, 224, 224);
+            doc.setLineWidth(0.8);
+            doc.roundedRect(42, 36, 511, 770, 8, 8);
+
+            doc.setDrawColor(44, 26, 17);
+            doc.setLineWidth(2);
+            doc.line(72, 150, 523, 150);
+
+            if (logoImage) {
+                try {
+                    doc.addImage(logoImage, 'JPEG', 72, 62, 72, 72);
+                } catch (error) {
+                    drawInvoiceLogoFallback(doc, 108, 98, 72);
+                }
+            } else {
+                drawInvoiceLogoFallback(doc, 108, 98, 72);
+            }
+
+            doc.setTextColor(44, 26, 17);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(28);
+            doc.text('TFI.Co', 158, 92);
+            doc.setTextColor(226, 135, 67);
+            doc.setFontSize(9);
+            doc.text('C I N E M A T I C   I N D U L G E N C E', 158, 111);
+
+            doc.setTextColor(102, 102, 102);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(24);
+            doc.text('INVOICE', 523, 88, { align: 'right' });
+            doc.setTextColor(51, 51, 51);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(11);
+            doc.text(`Invoice No: #${order.id}`, 523, 112, { align: 'right' });
+            doc.text(`Date: ${invoiceDate}`, 523, 130, { align: 'right' });
+
+            doc.setFillColor(253, 248, 245);
+            doc.roundedRect(72, 180, 451, 88, 6, 6, 'F');
+            doc.setTextColor(226, 135, 67);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(10);
+            doc.text('BILLED TO', 92, 206);
+            doc.text('PAYMENT INFORMATION', 358, 206);
+            doc.setTextColor(51, 51, 51);
+            doc.setFontSize(11);
+            doc.text('Customer Name:', 92, 229);
+            doc.setFont('helvetica', 'normal');
+            doc.text(order.customerName, 184, 229, { maxWidth: 145 });
+            doc.setFont('helvetica', 'bold');
+            doc.text('Status:', 358, 229);
+            doc.setFillColor(232, 244, 233);
+            doc.roundedRect(407, 216, 54, 22, 4, 4, 'F');
+            doc.setTextColor(46, 125, 50);
+            doc.setFontSize(10);
+            doc.text('PAID', 434, 231, { align: 'center' });
+
+            const tableX = 72;
+            const tableY = 302;
+            const tableW = 451;
+            const rowH = 34;
+            const itemX = tableX + 12;
+            const priceX = tableX + 310;
+            const qtyX = tableX + 365;
+            const amountX = tableX + 439;
+
+            doc.setFillColor(44, 26, 17);
+            doc.rect(tableX, tableY, tableW, rowH, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(10);
+            doc.text('ITEM DESCRIPTION', itemX, tableY + 21);
+            doc.text('PRICE', priceX, tableY + 21, { align: 'right' });
+            doc.text('QTY', qtyX, tableY + 21, { align: 'right' });
+            doc.text('AMOUNT', amountX, tableY + 21, { align: 'right' });
+
+            let y = tableY + rowH;
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(11);
+            doc.setTextColor(51, 51, 51);
+            order.items.forEach((item) => {
+                if (y > 640) return;
+                const wrappedName = doc.splitTextToSize(item.name, 230);
+                const currentRowH = Math.max(rowH, wrappedName.length * 13 + 18);
+                doc.setDrawColor(224, 224, 224);
+                doc.line(tableX, y + currentRowH, tableX + tableW, y + currentRowH);
+                doc.text(wrappedName, itemX, y + 21);
+                doc.text(`Rs. ${item.price}`, priceX, y + 21, { align: 'right' });
+                doc.text(String(item.qty), qtyX, y + 21, { align: 'right' });
+                doc.text(`Rs. ${item.amount}`, amountX, y + 21, { align: 'right' });
+                y += currentRowH;
+            });
+
+            const summaryY = Math.max(y + 34, 575);
+            doc.setTextColor(51, 51, 51);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(11);
+            doc.text('Subtotal', 360, summaryY);
+            doc.text(`Rs. ${order.total}`, 523, summaryY, { align: 'right' });
+            doc.text('Tax', 360, summaryY + 24);
+            doc.text('Rs. 0', 523, summaryY + 24, { align: 'right' });
+            doc.setDrawColor(44, 26, 17);
+            doc.setLineWidth(2);
+            doc.line(360, summaryY + 42, 523, summaryY + 42);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(16);
+            doc.setTextColor(44, 26, 17);
+            doc.text('Grand Total', 360, summaryY + 68);
+            doc.text(`Rs. ${order.total}`, 523, summaryY + 68, { align: 'right' });
+
+            doc.setDrawColor(224, 224, 224);
+            doc.setLineWidth(0.8);
+            doc.line(72, 728, 523, 728);
+            doc.setTextColor(102, 102, 102);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(10);
+            doc.text('Thank you for ordering from TFI.Co.', 297, 756, { align: 'center' });
+            doc.text('MVP Colony | +91 6304041270', 297, 774, { align: 'center' });
+            doc.save(`${order.id}-TFI-Co-invoice.pdf`);
+        }
+
+        async function submitAndDownloadInvoice() {
+            activeOrder = buildActiveOrder();
+            if (!activeOrder) return;
+            saveCompletedOrder(activeOrder);
+            await downloadBillPdf(activeOrder);
+            invoiceAlreadyDownloaded = true;
+            refreshNextOrderId();
+            resetBilling();
+        }
+
+        billingSubmit?.addEventListener('click', submitAndDownloadInvoice);
+        billingShowQr?.addEventListener('click', () => {
+            invoiceAlreadyDownloaded = false;
+            activeOrder = null;
+            openPaymentModal();
+        });
+        paymentClose?.addEventListener('click', closePaymentModal);
+        paymentModal?.addEventListener('click', (event) => {
+            if (event.target === paymentModal) closePaymentModal();
+        });
+        paymentConfirm?.addEventListener('click', async () => {
+            if (!activeOrder) return;
+            if (!invoiceAlreadyDownloaded) {
+                saveCompletedOrder(activeOrder);
+                await downloadBillPdf(activeOrder);
+            }
+            closePaymentModal(false);
+            resetBilling();
+        });
+        renderBilling();
     </script>
 </body>
 

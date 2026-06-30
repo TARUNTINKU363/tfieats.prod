@@ -108,8 +108,6 @@ tfieats/
 * Clean Code Structure
 * GitHub Pages Deployment
 
----
-
 ## 🌐 Deployment
 
 This project is deployed using **GitHub Pages**.
@@ -119,8 +117,6 @@ https://github.com/TARUNTINKU363/tfieats
 
 Live Site:
 https://taruntinku363.github.io/tfieats/
-
----
 
 ## 🤝 Contributing
 
@@ -132,13 +128,9 @@ Contributions, suggestions, and improvements are welcome.
 4. Push your branch
 5. Open a Pull Request
 
----
-
 ## 📄 License
 
 This project is created for educational and portfolio purposes.
-
----
 
 ## 👨‍💻 Author
 
